@@ -1,4 +1,5 @@
 #%%
+import db_utils as dbu
 from data_extraction import DataExtractor
 import pandas as pd
 import missingno as msno
@@ -24,7 +25,8 @@ class DataCleaning():
 def clean_user_data():
 
     #%%
-    users = DataExtractor().read_table('legacy_users')
+    connection = dbu.DatabaseConnector()
+    users = DataExtractor().read_rds_table(connection.engine, 'legacy_users')
     cleaner = DataCleaning()
 
     # %% [markdown]

@@ -2,9 +2,12 @@ import pandas as pd
 import yaml
 import sqlalchemy as sqla
 
+import data_cleaning as dcn
+
 
 class DatabaseConnector():
-    def __init__(self, filename='../setup/db_credentials.yaml'):
+    def __init__(self, credentials='db_credentials'):
+        filename = '../setup/' + credentials + '.yaml'
         self.credentials = self.read_credentials(filename)
         self.engine = self.start_sqla_engine()
         self.tables = self.list_db_tables()
@@ -28,7 +31,16 @@ class DatabaseConnector():
         '''
         inspector = sqla.inspect(self.engine)
         return inspector.get_table_names()
+    
+    def upload_table(self, df, table_name):
+        '''
+        Uploads a table to the database.
+        '''
+        df.to_sql(table_name, self.engine, if_exists='replace', index=False)
 
 if __name__ == '__main__':
-    connection = DatabaseConnector()
+    connection = DatabaseConnector('local_credentials')
     print(connection.list_db_tables())
+
+    users = dcn.clean_user_data()
+    connection.upload_table(users, 'dim_users')
