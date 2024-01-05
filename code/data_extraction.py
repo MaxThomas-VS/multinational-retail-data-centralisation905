@@ -1,5 +1,6 @@
 import pandas as pd
 import db_utils as dbu
+import tabula as tb
 
 class DataExtractor():
     
@@ -14,6 +15,14 @@ class DataExtractor():
         Reads a table from the database.
         '''
         return pd.read_sql_table(table_name, engine)
+    
+    def retrieve_pdf_data(self, link='https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'):
+        '''
+        Retrieves data from a pdf file to a pandas dataframe.
+        '''
+        all_data = tb.read_pdf(link, pages='all')
+        return pd.concat(all_data)
+    
     
 
 
