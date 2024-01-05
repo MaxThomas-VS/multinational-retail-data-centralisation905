@@ -1,5 +1,6 @@
 #%%
 import db_utils as dbu
+import data_extraction as de
 from data_extraction import DataExtractor
 import pandas as pd
 import missingno as msno
@@ -12,7 +13,10 @@ class DataCleaning():
         for column in columns:
             df[column] = df[column].astype('category') 
 
+#TODO - this should take a longer list of formats (specificallty %B %Y %d, which occurs in 4 credic card data)
     def make_datetime(self, df, columns):
+        if type(columns) == str:    
+            columns = [columns]
         for column in columns:
             new_dt_1 = pd.to_datetime(df[column], format='ISO8601', errors='coerce')
             new_dt_2 = pd.to_datetime(df[column], format='%Y %B %d', errors='coerce')
@@ -75,8 +79,45 @@ def clean_user_data():
 
     return users
 
+def clean_credit_card_data():
+
+    extractor = de.DataExtractor()
+    pdf_data = extractor.retrieve_pdf_data()
+    cleaner = DataCleaning()
+
+    # %%
+    pdf_data.reset_index(inplace=True, drop=True)
+    print(pdf_data.info())
+    for column in pdf_data.columns:
+        pdf_data[column].loc[pdf_data[column] == 'NULL'] = pd.NaT   
+    print(pdf_data.info())
+
+    # %%
+    for column in pdf_data.columns:
+        idx_check = (pdf_data[column].str.len() == 10) & \
+                    (pdf_data[column].str.isupper())
+        print(pdf_data[column][idx_check])
+        pdf_data[column][idx_check] = pd.NaT
+
+    cleaner.make_datetime(pdf_data, 'date_payment_confirmed')
+
+    pdf_data.info()
+    pdf_data.dropna(axis=0, subset=pdf_data.columns, inplace=True)
+    pdf_data.info()
+
+    return pdf_data
+
 if __name__ == '__main__':
-    clean_user_data()
+    users = clean_user_data()
+    credit_card = clean_credit_card_data()
+
+    connection = dbu.DatabaseConnector('local_credentials')
+    print(connection.list_db_tables())
+
+    connection.upload_table(users, 'dim_users')
+    connection.upload_table(credit_card, 'dim_card_details')
 
 
 
+
+# %%
