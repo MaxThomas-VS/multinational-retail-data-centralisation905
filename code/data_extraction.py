@@ -1,6 +1,7 @@
 import pandas as pd
 import tabula as tb
 import requests
+import boto3
 
 class DataExtractor():
 
@@ -52,6 +53,11 @@ class DataExtractor():
                 print(f"Request failed with status code: {response.status_code}")
                 print(f"Response Text: {response.text}")
         return stores_data
+    
+    def extract_from_s3(self, bucket='data-handling-public', key='products.csv'):
+        s3 = boto3.client('s3')
+        s3_obj = s3.get_object(Bucket=bucket, Key=key)
+        return pd.read_csv(s3_obj['Body'])
     
 
 
