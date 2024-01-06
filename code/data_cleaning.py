@@ -25,6 +25,21 @@ class DataCleaning():
     def drop_null_rows(self, df, columns):
         df.dropna(axis=0, subset=columns, inplace=True)
 
+    def drop_null_column(self, df, columns):
+        df.drop(columns=columns, inplace=True)
+
+    def flag_null(self, df):
+        for column in df.columns:
+            df[column].loc[df[column] == 'NULL'] = pd.NaT   
+
+    def flag_strange_values(self, df):
+        for column in df.columns:
+            if not column == 'index':
+                idx_check = (df[column].str.len() == 10) & \
+                        (df[column].str.isupper())
+                print(df[column][idx_check])
+                df[column][idx_check] = pd.NaT
+
 
 def clean_user_data():
 
@@ -107,15 +122,53 @@ def clean_credit_card_data():
 
     return pdf_data
 
+def clean_stores_data():
+    extractor = de.DataExtractor()
+    stores_data = extractor.retrieve_stores_data()
+    cleaner = DataCleaning()
+    stores_data.reset_index(inplace=True, drop=True)
+    stores_data.info()
+
+    #%%
+    stores = stores_data.copy()
+    stores.drop(columns=['lat'], inplace=True)
+    stores.info()
+
+
+    # %%
+    cleaner.flag_null(stores)
+    stores.info()
+
+    #%%
+    cleaner.flag_strange_values(stores)
+    stores.info()
+
+
+    # %%
+    cleaner.make_datetime(stores_data, 'opening_date')
+    stores.info()
+
+    # %%
+    stores.dropna(axis=0, subset=['locality'], inplace=True)
+    stores.info()
+
+    return stores
+
+
+
 if __name__ == '__main__':
-    users = clean_user_data()
-    credit_card = clean_credit_card_data()
+    #users = clean_user_data()
+    #credit_card = clean_credit_card_data()
 
     connection = dbu.DatabaseConnector('local_credentials')
     print(connection.list_db_tables())
 
-    connection.upload_table(users, 'dim_users')
-    connection.upload_table(credit_card, 'dim_card_details')
+    #connection.upload_table(users, 'dim_users')
+    #connection.upload_table(credit_card, 'dim_card_details')
+
+    stores = clean_stores_data()
+    print(stores.info())
+    connection.upload_table(stores, 'dim_store_details')
 
 
 
