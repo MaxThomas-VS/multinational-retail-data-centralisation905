@@ -66,6 +66,7 @@ class DataCleaning():
 
 
 
+
 def clean_user_data():
 
     #%%
@@ -210,6 +211,8 @@ def clean_product_data():
     # %%
     products['weight'].iloc[1772] = '77g' # manually reformat one edge case
     cleaner.convert_weights(products)
+    products.rename(columns={'weight':'weight_kg'}, inplace=True)
+
 
     return products
 
