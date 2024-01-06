@@ -36,9 +36,34 @@ class DataCleaning():
         for column in df.columns:
             if not column == 'index':
                 idx_check = (df[column].str.len() == 10) & \
-                        (df[column].str.isupper())
+                        (df[column].str.isupper()) & \
+                        (df[column].str.contains('-') == False)
                 print(df[column][idx_check])
                 df[column][idx_check] = pd.NaT
+    
+    def convert_weights(self, df):
+        ikg = df['weight'].str.contains('kg')
+        df['weight'].loc[ikg] = df['weight'].loc[ikg].str.replace('kg', '')
+
+        iml = df['weight'].str.contains('ml')
+        df['weight'].loc[iml] = df['weight'].loc[iml].str.replace('ml', 'g') # replace with g asuming 1ml = 1g
+
+        ig = df['weight'].str.contains('g')
+        df['weight'].loc[ig] = df['weight'].loc[ig].str.replace('g', '')
+
+        ioz = df['weight'].str.contains('oz')
+        df['weight'].loc[ioz] = df['weight'].loc[ioz].str.replace('oz', '')
+
+        imultiply = df['weight'].loc[df['weight'].str.contains(' x ')].index 
+        for ix in imultiply:
+            nums = df['weight'].iloc[ix].split(' x ')
+            new_weight = float(nums[0]) * float(nums[1])
+            df['weight'].iloc[ix] = str(new_weight / 1000)
+
+        df['weight'] = df['weight'].astype('float64')
+        df['weight'].loc[ig] = df['weight'].loc[ig] / 1000
+        df['weight'].loc[ioz] = df['weight'].loc[ioz] / 35.274
+
 
 
 def clean_user_data():
@@ -154,6 +179,39 @@ def clean_stores_data():
 
     return stores
 
+def clean_product_data():
+    extractor = DataExtractor()
+    cleaner = DataCleaning()
+
+    products_raw = extractor.extract_from_s3()
+
+    #%%
+    products = products_raw.copy()
+    products.reset_index(inplace=True, drop=True)
+    products.drop( columns='Unnamed: 0', inplace=True)
+
+    # %%
+    cleaner.flag_null(products)
+    #%%
+    cleaner.flag_strange_values(products)
+
+    # %%
+    cleaner.make_datetime(products, 'date_added')
+
+    # %%
+    products.dropna(axis=0, subset=['product_name'], inplace=True)
+    products.reset_index(inplace=True, drop=True)
+
+    # %%
+    products['product_price'] = products['product_price'].str.replace('£', '')
+    products['product_price'] = products['product_price'].astype('float64')
+    products.rename(columns={'product_price':'price_gbp'}, inplace=True)
+    
+    # %%
+    products['weight'].iloc[1772] = '77g' # manually reformat one edge case
+    cleaner.convert_weights(products)
+
+    return products
 
 
 if __name__ == '__main__':
@@ -166,11 +224,13 @@ if __name__ == '__main__':
     #connection.upload_table(users, 'dim_users')
     #connection.upload_table(credit_card, 'dim_card_details')
 
-    stores = clean_stores_data()
-    print(stores.info())
-    connection.upload_table(stores, 'dim_store_details')
+    #stores = clean_stores_data()
+    #print(stores.info())
+    #connection.upload_table(stores, 'dim_store_details')
 
-
+    products = clean_product_data()
+    print(products.info())
+    connection.upload_table(products, 'dim_product_details')
 
 
 # %%
