@@ -206,7 +206,7 @@ def clean_product_data():
     products['product_price'] = products['product_price'].str.replace('£', '')
     products['product_price'] = products['product_price'].astype('float64')
     products.rename(columns={'product_price':'price_gbp'}, inplace=True)
-    
+
     # %%
     products['weight'].iloc[1772] = '77g' # manually reformat one edge case
     cleaner.convert_weights(products)
@@ -230,7 +230,7 @@ if __name__ == '__main__':
 
     products = clean_product_data()
     print(products.info())
-    connection.upload_table(products, 'dim_product_details')
+    connection.upload_table(products, 'dim_products')
 
 
 # %%
