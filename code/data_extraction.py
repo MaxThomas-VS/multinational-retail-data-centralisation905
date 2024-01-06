@@ -1,5 +1,6 @@
 import pandas as pd
 import tabula as tb
+import requests
 
 class DataExtractor():
     
@@ -21,6 +22,22 @@ class DataExtractor():
         '''
         all_data = tb.read_pdf(link, pages='all')
         return pd.concat(all_data)
+    
+    def list_number_of_stores(self, 
+                              link='https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores',
+                              header={'x-api-key': 'yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX'}):
+        response = requests.get(link, headers=header)
+        if response.status_code == 200:
+            data = response.json()
+            return data['number_stores']
+        else:
+            print(f"Request failed with status code: {response.status_code}")
+            print(f"Response Text: {response.text}")
+            return None
+        
+    
+
+
     
     
 
