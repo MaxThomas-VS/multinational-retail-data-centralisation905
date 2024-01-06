@@ -3,6 +3,9 @@ import tabula as tb
 import requests
 
 class DataExtractor():
+
+    def __init__(self):
+        self.api_key = self.make_api_header()
     
     def print_table_names(self, engine):
         '''
@@ -23,10 +26,11 @@ class DataExtractor():
         all_data = tb.read_pdf(link, pages='all')
         return pd.concat(all_data)
     
-    def list_number_of_stores(self, 
-                              link='https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores',
-                              header={'x-api-key': 'yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX'}):
-        response = requests.get(link, headers=header)
+    def make_api_header(self, api_key='yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX'):
+        return {'x-api-key': api_key}
+    
+    def list_number_of_stores(self, link='https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores'):
+        response = requests.get(link, headers=self.api_key)
         if response.status_code == 200:
             data = response.json()
             return data['number_stores']
@@ -35,6 +39,19 @@ class DataExtractor():
             print(f"Response Text: {response.text}")
             return None
         
+    def retrieve_stores_data(self, link='https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/'):
+        n_stores = self.list_number_of_stores()
+        stores_data = None
+        for i_store in range(n_stores):
+            response = requests.get(link + str(i_store), headers=self.api_key)
+            if response.status_code == 200:
+                new_data = pd.json_normalize(response.json())
+                stores_data = pd.concat([stores_data, new_data])
+            else:
+                print(f"In retrieve_stores_data, iteration {str(i_store)}:")
+                print(f"Request failed with status code: {response.status_code}")
+                print(f"Response Text: {response.text}")
+        return stores_data
     
 
 
