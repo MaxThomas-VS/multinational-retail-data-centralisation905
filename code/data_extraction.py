@@ -2,6 +2,7 @@ import pandas as pd
 import tabula as tb
 import requests
 import boto3
+import io
 
 class DataExtractor():
 
@@ -57,7 +58,11 @@ class DataExtractor():
     def extract_from_s3(self, bucket='data-handling-public', key='products.csv'):
         s3 = boto3.client('s3')
         s3_obj = s3.get_object(Bucket=bucket, Key=key)
-        return pd.read_csv(s3_obj['Body'])
+        if key.endswith('.csv'):
+            return pd.read_csv(s3_obj['Body'])
+        elif key.endswith('.json'):
+            stream_data = io.BytesIO(s3_obj['Body'].read())
+            return pd.read_json(stream_data)
     
 
 
@@ -66,7 +71,7 @@ class DataExtractor():
 
 
 #if __name__ == '__main__':
-#    connection = dbu.DatabaseConnector()
+ #   connection = dbu.DatabaseConnector()
 #    users = extractor.read_rds_table(connection.engine, 'legacy_users')
-#    extractor = DataExtractor()
+###   extractor = DataExtractor()
 #    print(users.info())

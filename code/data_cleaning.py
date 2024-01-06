@@ -236,7 +236,26 @@ def clean_order_data():
 
     return orders
 
+def clean_dates():
+    #%%
+    connection = dbu.DatabaseConnector()
+    extractor = DataExtractor()
+    cleaner = DataCleaning()
 
+    # %%
+    dates_raw = extractor.extract_from_s3(key='date_details.json')
+    dates = dates_raw.copy()
+
+    # %%
+    cleaner.flag_null(dates)
+
+    #%%
+    cleaner.flag_strange_values(dates)
+    # %%
+    dates.dropna(axis=0, subset=dates.columns, inplace=True)
+    dates.reset_index(inplace=True, drop=True)
+    
+    return dates
 
 if __name__ == '__main__':
     #users = clean_user_data()
@@ -256,9 +275,12 @@ if __name__ == '__main__':
     #print(products.info())
     #connection.upload_table(products, 'dim_products')
 
-    orders = clean_order_data()
-    print(orders.info())
-    connection.upload_table(orders, 'orders_table')
+    #orders = clean_order_data()
+    #print(orders.info())
+    #connection.upload_table(orders, 'orders_table')
 
+    dates = clean_dates()
+    print(dates.info())
+    connection.upload_table(dates, 'dim_date_times')
 
 # %%
