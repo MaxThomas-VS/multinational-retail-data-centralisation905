@@ -38,7 +38,7 @@ class DataCleaning():
                 idx_check = (df[column].str.len() == 10) & \
                         (df[column].str.isupper()) & \
                         (df[column].str.contains('-') == False)
-                print(df[column][idx_check])
+                print(column)
                 df[column][idx_check] = pd.NaT
     
     def convert_weights(self, df):
@@ -216,6 +216,27 @@ def clean_product_data():
 
     return products
 
+def clean_order_data():
+    extractor = DataExtractor()
+    connection = dbu.DatabaseConnector()
+    cleaner = DataCleaning()
+
+    #%%
+    connection.list_db_tables()
+    # %%
+    orders_raw = extractor.read_rds_table(connection.engine, 'orders_table')
+    orders = orders_raw.copy()
+
+    # %%
+    orders.drop(columns=['level_0', 'first_name', 'last_name', '1'], inplace=True)
+    orders.reset_index(inplace=True, drop=True)
+
+    # %%
+    cleaner.flag_null(orders)
+
+    return orders
+
+
 
 if __name__ == '__main__':
     #users = clean_user_data()
@@ -231,9 +252,13 @@ if __name__ == '__main__':
     #print(stores.info())
     #connection.upload_table(stores, 'dim_store_details')
 
-    products = clean_product_data()
-    print(products.info())
-    connection.upload_table(products, 'dim_products')
+    #products = clean_product_data()
+    #print(products.info())
+    #connection.upload_table(products, 'dim_products')
+
+    orders = clean_order_data()
+    print(orders.info())
+    connection.upload_table(orders, 'orders_table')
 
 
 # %%
