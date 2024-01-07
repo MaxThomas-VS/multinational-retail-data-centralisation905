@@ -1,0 +1,4 @@
+run all scripts with change*.sql in any order.
+then add_primary_keys.sql
+then add_foriegn_keys.sql
+
