@@ -4,6 +4,44 @@ Data are extracted, cleaned, then stored in a relational database. The data are 
 
 Insights are extracted from the new database using several SQL queries, shown below.
 
+Directory structure:
+```
+.
+├── README.md
+├── code
+│   ├── SQL
+│   │   ├── order_of_execution
+│   │   ├── setup.SQL
+│   │   ├── task1.sql
+│   │   ├── task2.sql
+│   │   ├── task3.sql
+│   │   ├── task4.sql
+│   │   ├── task5.sql
+│   │   ├── task6.sql
+│   │   ├── task7.sql
+│   │   ├── task8.sql
+│   │   └── task9.sql
+│   ├── __main__.py
+│   ├── data_cleaning.py
+│   ├── data_extraction.py
+│   ├── db_utils.py
+│   └── run
+├── results
+│   ├── query1.png
+│   ├── query2.png
+│   ├── query3.png
+│   ├── query4.png
+│   ├── query5.png
+│   ├── query6.png
+│   ├── query7.png
+│   ├── query8.png
+│   └── query9.png
+└── setup
+    ├── db_credentials.yaml
+    ├── environment.yaml
+    └── local_credentials.yaml
+```
+
 ## Insights from database
 
 ### Query 1

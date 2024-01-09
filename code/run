@@ -1,0 +1,6 @@
+#!/bin/bash
+eval "$(conda shell.bash hook)"
+conda activate aicore_dbc
+
+echo "Extract, clean, and store data."
+python code 
