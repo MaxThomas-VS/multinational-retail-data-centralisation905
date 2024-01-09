@@ -78,7 +78,7 @@ FROM dim_store_details;
 
 UPDATE dim_store_details
 SET longitude = NULL, locality = 'Web', country_code = NULL
-WHERE longitude = 'N/A';
+WHERE address = 'N/A';
 
 ALTER TABLE dim_store_details
 	ALTER COLUMN longitude TYPE FLOAT USING longitude::double precision,

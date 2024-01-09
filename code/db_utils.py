@@ -8,9 +8,9 @@ import sqlalchemy as sqla
 class DatabaseConnector():
     def __init__(self, credentials='db_credentials'):
         try:
-            filename = '../setup/' + credentials + '.yaml'
-        except:
             filename = 'setup/' + credentials + '.yaml'
+        except:
+            filename = '../setup/' + credentials + '.yaml'
         self.credentials = self.read_credentials(filename)
         self.engine = self.start_sqla_engine()
         self.tables = self.list_db_tables()
