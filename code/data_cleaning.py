@@ -3,7 +3,6 @@ import db_utils as dbu
 import data_extraction as de
 from data_extraction import DataExtractor
 import pandas as pd
-import missingno as msno
 import matplotlib.pyplot as plt 
 
 
@@ -82,7 +81,7 @@ def clean_user_data():
         users[column].loc[users[column] == 'NULL'] = pd.NaT   
     print(users.info())
 
-    msno.matrix(users)
+    #msno.matrix(users)
 
     # %% [markdown]
     # We see that several rows (21 total) are entirely missing, so we drop these.
@@ -128,6 +127,11 @@ def clean_credit_card_data():
 
     # %%
     pdf_data.reset_index(inplace=True, drop=True)
+
+
+    pdf_data['card_number'] = pdf_data['card_number'].astype('str')
+    pdf_data['card_number'] = pdf_data['card_number'].str.replace('?', '')
+    
     print(pdf_data.info())
     for column in pdf_data.columns:
         pdf_data[column].loc[pdf_data[column] == 'NULL'] = pd.NaT   
@@ -150,8 +154,10 @@ def clean_credit_card_data():
 
 def clean_stores_data():
     extractor = de.DataExtractor()
-    stores_data = extractor.retrieve_stores_data()
     cleaner = DataCleaning()
+    
+    stores_data = extractor.retrieve_stores_data()
+
     stores_data.reset_index(inplace=True, drop=True)
     stores_data.info()
 
@@ -169,14 +175,18 @@ def clean_stores_data():
     cleaner.flag_strange_values(stores)
     stores.info()
 
+    #%%
 
     # %%
-    cleaner.make_datetime(stores_data, 'opening_date')
+    cleaner.make_datetime(stores, 'opening_date')
     stores.info()
 
     # %%
     stores.dropna(axis=0, subset=['locality'], inplace=True)
     stores.info()
+
+    #%%
+    stores['staff_numbers'].loc[~stores['staff_numbers'].str.isdigit()] = pd.NaT
 
     return stores
 
@@ -209,9 +219,14 @@ def clean_product_data():
     products.rename(columns={'product_price':'price_gbp'}, inplace=True)
 
     # %%
+    SA = products['removed']=='Still_avaliable'
+    products['removed'].loc[~SA] = False
+    products['removed'].loc[SA] = True
+    products.rename(columns={'removed':'still_available'}, inplace=True)
+    # %%
     products['weight'].iloc[1772] = '77g' # manually reformat one edge case
     cleaner.convert_weights(products)
-    products.rename(columns={'weight':'weight_kg'}, inplace=True)
+    products.rename(columns={'weight':'weight_kg', 'EAN': 'ean'}, inplace=True)
 
 
     return products
@@ -265,22 +280,24 @@ if __name__ == '__main__':
     print(connection.list_db_tables())
 
     #connection.upload_table(users, 'dim_users')
-    #connection.upload_table(credit_card, 'dim_card_details')
+    
+    cards = clean_credit_card_data()
+    connection.upload_table(cards, 'dim_card_details')
 
     #stores = clean_stores_data()
-    #print(stores.info())
+   # print(stores.info())
     #connection.upload_table(stores, 'dim_store_details')
 
     #products = clean_product_data()
-    #print(products.info())
+   # print(products.info())
     #connection.upload_table(products, 'dim_products')
 
     #orders = clean_order_data()
     #print(orders.info())
     #connection.upload_table(orders, 'orders_table')
 
-    dates = clean_dates()
-    print(dates.info())
-    connection.upload_table(dates, 'dim_date_times')
+    #dates = clean_dates()
+    #print(dates.info())
+    #connection.upload_table(dates, 'dim_date_times')
 
 # %%
