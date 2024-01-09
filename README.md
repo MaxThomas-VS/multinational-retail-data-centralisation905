@@ -1,6 +1,6 @@
 # Create relational database for multi-national sales data
 ## Max Thomas
-Data are extracted, cleaned, then stored in a relational database. The data are sales data for a company with 450 stores in the UK, Germany, and the US. 
+Data are extracted, cleaned, then stored in a relational database. The data are sales data for a company with 450 stores in the UK, Germany, and the US. Data are extracted from several sources, including an AWS S3 buckets, pdf documents, an API, and a csv.
 
 Insights are extracted from the new database using several SQL queries, shown below.
 
